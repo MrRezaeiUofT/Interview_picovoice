@@ -24,10 +24,10 @@ def prob_rain_more_than_n(p: Sequence[float], n: int) -> float:
     n_d = len(p)
     
     # Initialize dp array
-    dp = [[0.0 for _ in range(n_d + 1)] for _ in range(n_d + 1)]
+    dp = [[0 for _ in range(n_d + 1)] for _ in range(n_d + 1)]
     
     # Edge case: probability of 0 rainy days after 0 days is 1
-    dp[0][0] = 1.0
+    dp[0][0] = 1
     
 
     for d in range(1, n_d + 1):
@@ -39,8 +39,6 @@ def prob_rain_more_than_n(p: Sequence[float], n: int) -> float:
                 # Probability of having 0 rainy days
                 dp[d][j] = dp[d - 1][j] * (1 - rp)
             else:
-
-                # (probability of having j-1 rainy days so far AND rain today)
                 dp[d][j] = dp[d - 1][j] * (1 - rp) + dp[d - 1][j - 1] * rp
     
 
