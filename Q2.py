@@ -1,49 +1,68 @@
 """
 Q2 [C, Python] A phoneme is a sound unit (similar to a character for text). We have an extensive pronunciation
-dictionary (think millions of words). Below is a snippet:
+dictionary (think millions of words). Given a sequence of phonemes as input find all the combinations of the words that
+can produce this sequence. You can
+preprocess the dictionary into a different data structure if needed.
 
 """
 
-from typing import List, Sequence, Dict, Tuple
+from typing import Sequence, List, Dict,Tuple
+from collections import defaultdict
 
-# The keys are tuples representing the sequence of phonemes.
-P_dic: Dict[Tuple[str, ...], List[str]] = {
-    ("AE", "B", "AH", "K", "AH", "S"): ["ABACUS"],
-    ("B", "UH", "K"): ["BOOK"],
-    ("DH", "EH", "R"): ["THEIR", "THERE"],
-    ("T", "AH", "M", "AA", "T", "OW"): ["TOMATO"],
-    ("T", "AH", "M", "EY", "T", "OW"): ["TOMATO"],
-}
-
-def find_word_combos_with_pronunciation(phonemes: Sequence[str]) -> Sequence[Sequence[str]]:
-    n=len(phonemes)
-    memo: Dict[int, List[List[str]]] ={}
+def preprocess_dictionary(dictionary: Dict):
+    """
+    Preprocess the pronunciation dictionary
+    """
+    ph_words = defaultdict(list)
     
-    def dfs(i):
-        # return an empty combinatio at the end.
-        if i==n:
-            return [[]]
-        if i in memo:
-            return memo[i]
+    for word in dictionary:
+        # Split into word and seq of phonemes
+        parts = dictionary[word].split()
         
-        combs=[]
-        # Try every possibilities at i
-        for j in range(i + 1, n + 1):
-            seg = tuple(phonemes[i:j])
-            if seg in P_dic:
-                words = P_dic[seg]
-                # recursively solve for the remaining phonemes.
-                for w in words:
-                    for tail in dfs(j):
-                        combs.append([w] + tail)
-        memo[i]=combs
-        return combs
-
-    return dfs(0)
-
-
+        # create the map
+        ph_words[tuple(parts)].append(word)
     
-input_phonemes = ["DH", "EH", "R", "DH", "EH", "R"]
-results = find_word_combos_with_pronunciation(input_phonemes)
-print(results)
+    return ph_words
 
+def find_word_combos_with_pronunciation(phonemes: Sequence[str], 
+                                         dictionary: Dict) -> Sequence[Sequence[str]]:
+    """
+    Find all combinations of words
+    """
+    # Preprocess
+    ph_words = preprocess_dictionary(dictionary)
+    
+    # dp[i] all word combinations that can form the phoneme sequence up to index i
+    dp = [[] for _ in range(len(phonemes) + 1)]
+    dp[0] = [[]] 
+    
+    for i in range(1, len(phonemes) + 1):
+        for j in range(i):
+            # check subsequence from j to i can form a word
+            c_phonemes = tuple(phonemes[j:i])
+            
+            if c_phonemes in ph_words:
+                
+                for word in ph_words[c_phonemes]:
+                    # Extend previous combinations
+                    for prev_combo in dp[j]:
+                        new_comb = prev_combo + [word]
+                        dp[i].append(new_comb)
+    
+    return dp[len(phonemes)]
+
+
+dictionary = {
+        "ABACUS": "AE B AH K AH S",
+        "BOOK": "B UH K",
+        "THEIR": "DH EH R",
+        "THERE": "DH EH R",
+        "TOMATO": "T AH M AA T OW",
+        "TOMATO": "T AH M EY T OW"
+    }
+    
+
+result = find_word_combos_with_pronunciation( ["DH", "EH", "R", "DH", "EH", "R"], dictionary)
+print(" combinations:")
+for combo in result:
+        print(combo)
